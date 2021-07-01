@@ -1,6 +1,10 @@
 """
+Soop
+Satellite Operation Outdoor Planning
+by 9V1KG
 Program using skyfield to predict optimal date and time
 for ham radio satellite outdoor operation
+2021-07-01
 """
 
 import datetime
@@ -27,7 +31,7 @@ COL = Col(red="\033[1;31;48m",
           end="\033[1;37;0m"
           )
 
-# Constants
+# Constants - Please change according to your requirements
 EL_MIN = 10  # minimum elevation angle for satellite event
 MIN_DUR = 3  # minimum duration for satellite event
 QTH_DEF = "OJ11xi"  # default qth locator
