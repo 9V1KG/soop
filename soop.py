@@ -32,11 +32,14 @@ COL = Col(red="\033[1;31;48m",
           )
 
 # Constants - Please change according to your requirements
-EL_MIN = 10  # minimum elevation angle for satellite event
+EL_MIN = 10.  # minimum elevation angle for satellite event
 MIN_DUR = 3  # minimum duration for satellite event
 QTH_DEF = "OJ11xi"  # default qth locator
-SATS_DEF = [44909, 7530, 42759, 42761, 40903, 40906, 40910, 43803, 40908, 25544, 27607]
-SATS_FM = [27607, 40931, 43678, 25544]
+SATS_DEF = {"RS-44": 44909, "AO=7":7530, "CAS-4B": 42759,
+            "CAS-4A": 42761, "XW-2A":40903, "XW-2C": 40906,
+            "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
+            "ISS": 25544, "SO-50": 27607}
+SATS_FM ={"SO-50": 27607, "LAPAN-A2": 40931, "DIWATA-2B": 43678, "ISS": 25544}
 
 
 def get_key(item):
@@ -105,7 +108,7 @@ def sat_track(geo_pos, dt_start, dt_end, cat_n):
     satellite = by_number[cat_n]
     t_start = time_sc.from_datetime(dt_start)
     t_end = time_sc.from_datetime(dt_end)
-    t_event, events = satellite.find_events(geo_pos, t_start, t_end, altitude_degrees=10.)
+    t_event, events = satellite.find_events(geo_pos, t_start, t_end, altitude_degrees=EL_MIN)
     for t_li, event in zip(t_event, events):
         # Convert time object to timestamp
         time_sc = datetime.datetime.timestamp(Time.utc_datetime(t_li))
@@ -153,24 +156,24 @@ def check_tle(sat_list):
     :param sat_list: list of satellites with Norad catalogue numbers
     :return: void
     """
-    for cat_nr in sat_list:
-        url = 'https://celestrak.com/satcat/tle.php?CATNR={}'.format(cat_nr)
-        fname = 'tle-CATNR-{}.txt'.format(cat_nr)
+    for sat_name in sat_list:
+        url = 'https://celestrak.com/satcat/tle.php?CATNR={}'.format(sat_list[sat_name])
+        fname = 'tle-CATNR-{}.txt'.format(sat_list[sat_name])
         sat = load.tle_file(url, reload=False, filename=fname)
         if not sat:
             print(f"{COL.red}Invalid Satellite list, "
-                  f"no TLE data for catalogue no {cat_nr}{COL.end}")
+                  f"no TLE data for catalogue no {sat_name}{COL.end}")
             print(f"{COL.red}Please correct your list{COL.end}")
             sys.exit(1)
         tle_days = int(load.days_old(fname))
         if tle_days > 7:
-            print("TLE data outdated, reloading from celestrack")
+            print(f"TLE data for {sat_name} outdated, reloading from celestrack")
             load.tle_file(url, reload=True, filename=fname)
 
 
 def get_qth():
     """
-
+    Get qth locator from user
     :return:
     """
     qthloc = QTH_DEF
@@ -253,7 +256,7 @@ def get_input():
 def get_pc_timezone():
     """
     Print timezone of computer
-    :return:
+    :return: void
     """
     print(f"Computer Date and Time are set to UTC {COL.yellow}{time.tzname[0]}{COL.end}")
     return
@@ -305,9 +308,9 @@ def main():
         fc_date_loc = earliest_start_of_op_loc + datetime.timedelta(days=fc_day)
         # Loop through all satellites
         time_list = []
-        for sat_nr in my_sat_list:
+        for sat in my_sat_list:
             # call function to find events
-            evnts = sat_track(geo_pos, fc_date_utc_start, fc_date_utc_end, sat_nr)
+            evnts = sat_track(geo_pos, fc_date_utc_start, fc_date_utc_end, my_sat_list[sat])
             if evnts is not None:
                 time_list.extend(evnts)
         # sort by timestamp
