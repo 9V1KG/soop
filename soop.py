@@ -156,7 +156,7 @@ def check_tle(sat_list):
     for cat_nr in sat_list:
         url = 'https://celestrak.com/satcat/tle.php?CATNR={}'.format(cat_nr)
         fname = 'tle-CATNR-{}.txt'.format(cat_nr)
-        sat = load.tle_file(url,reload=False, filename=fname)
+        sat = load.tle_file(url, reload=False, filename=fname)
         if not sat:
             print(f"{COL.red}Invalid Satellite list, "
                   f"no TLE data for catalogue no {cat_nr}{COL.end}")
@@ -164,8 +164,9 @@ def check_tle(sat_list):
             sys.exit(1)
         tle_days = int(load.days_old(fname))
         if tle_days > 7:
-            print("Some TLE data outdated, reloading from celestrack")
-            sat = load.tle_file(url, reload=True, filename=fname)
+            print("TLE data outdated, reloading from celestrack")
+            load.tle_file(url, reload=True, filename=fname)
+
 
 def get_qth():
     """
@@ -265,7 +266,7 @@ def main():
     """
     # Norad catalogue numbers
     my_sat_list = SATS_DEF
-    #my_sat_list = SATS_FM
+    # my_sat_list = SATS_FM
     tz_f = TimezoneFinder()  # initialize timezone finder
     get_pc_timezone()
     check_tle(my_sat_list)
@@ -315,7 +316,7 @@ def main():
         res = find_best_time(op_hours, tls_sorted)
 
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
-        print(f"On{COL.yellow}", str(fc_date_loc).split(" ", maxsplit=1)[0],f"{COL.end}",
+        print(f"On{COL.yellow}", str(fc_date_loc).split(" ", maxsplit=1)[0], f"{COL.end}",
               f"{len(tls_sorted)} satellites, "
               f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} can be operated "
               f"within {op_hours} h, "
