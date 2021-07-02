@@ -1,10 +1,10 @@
 """
 Soop
-Satellite Operation Outdoor Planning
-by 9V1KG
+Satellite Operation Outdoor Planning for ham radio
 Program using skyfield to predict optimal date and time
 for ham radio satellite outdoor operation
-2021-07-01
+GPL-3.0 License
+2021-07-01 (c) 9V1KG
 """
 
 import datetime
@@ -35,11 +35,13 @@ COL = Col(red="\033[1;31;48m",
 EL_MIN = 10.  # minimum elevation angle for satellite event
 MIN_DUR = 3  # minimum duration for satellite event
 QTH_DEF = "OJ11xi"  # default qth locator
-SATS_DEF = {"RS-44": 44909, "AO=7":7530, "CAS-4B": 42759,
-            "CAS-4A": 42761, "XW-2A":40903, "XW-2C": 40906,
+SATS_DEF = {"RS-44": 44909, "AO=7": 7530, "CAS-4B": 42759,
+            "CAS-4A": 42761, "XW-2A": 40903, "XW-2C": 40906,
             "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
             "ISS": 25544, "SO-50": 27607}
-SATS_FM ={"SO-50": 27607, "LAPAN-A2": 40931, "DIWATA-2B": 43678, "ISS": 25544}
+SATS_FM = {"SO-50": 27607, "LAPAN-A2": 40931, "DIWATA-2B": 43678, "ISS": 25544}
+
+CEL_TRK = "https://celestrak.com/satcat/tle.php"  # for tle download
 
 
 def get_key(item):
@@ -99,7 +101,7 @@ def sat_track(geo_pos, dt_start, dt_end, cat_n):
     :return: list of events for satellite with cat_n
     """
     ev_list = []
-    url = 'https://celestrak.com/satcat/tle.php?CATNR={}'.format(cat_n)
+    url = CEL_TRK + '?CATNR={}'.format(cat_n)
     fname = 'tle-CATNR-{}.txt'.format(cat_n)
     t_aos = None
     time_sc = load.timescale()
@@ -174,7 +176,7 @@ def check_tle(sat_list):
 def get_qth():
     """
     Get qth locator from user
-    :return:
+    :return: qthloc: str
     """
     qthloc = QTH_DEF
     while True:
@@ -192,7 +194,7 @@ def get_qth():
 def get_input():
     """
     Get input from user
-    :return: qth locator, date of operation, start and end time, duration and days to be forecasted
+    :return: date of operation, start and end time, duration and days to be forecasted
     """
     valid_date = re.compile(r"[2][0][1-9]{2}-[0-9]{2}-[0-3][0-9]")
     valid_time = re.compile(r"[0-2][0-9]:[0-5][0-9]")
@@ -221,6 +223,7 @@ def get_input():
             break
         if re.match(valid_time, line):
             tme_start = re.match(valid_time, line)[0]
+            # todo: check that date is not earlier than today
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
@@ -230,6 +233,7 @@ def get_input():
             break
         if re.match(valid_time, line):
             tme_end = re.match(valid_time, line)[0]
+            # todo: check that tme_end is not earlier than tme_start
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
@@ -248,6 +252,7 @@ def get_input():
             break
         if 1 < int(line) < 31:
             days_fc = int(line)
+            # todo: warning when days_fc > 7 (validity of tle data)
             break
         print(f"{COL.red}Invalid input{COL.end}")
     return dte_start, tme_start, tme_end, dur_op, days_fc
@@ -267,15 +272,15 @@ def main():
     Main program to forecast and find optimal time period for outdoor ham radio satellite operation
     :return: void
     """
-    # Norad catalogue numbers
-    my_sat_list = SATS_DEF
-    # my_sat_list = SATS_FM
+
+    my_sat_list = SATS_DEF  # Norad catalogue numbers
     tz_f = TimezoneFinder()  # initialize timezone finder
-    get_pc_timezone()
-    check_tle(my_sat_list)
+
     # Header output
     print(f"\n{COL.cyan}SOOP Satellite Outdoor Operation Planning for ham radio by 9V1KG{COL.end}")
-    print("For defaults just press enter")
+    check_tle(my_sat_list)
+    get_pc_timezone()
+    print("For default input just press enter")
 
     # Input
     qth_loc = get_qth()

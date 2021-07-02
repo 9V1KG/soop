@@ -1,5 +1,5 @@
 # Soop
-Satellite Operation Outdoor Planning by 9V1KG
+Satellite Operation Outdoor Planning for ham radio by 9V1KG
 
 The program calculates the optimal time slot during a day to work as many as possible ham radio satellites. 
 Based on your QTH locator and a list of preferred satellites (Norad catalogue numbers), the program 
@@ -14,7 +14,9 @@ Within the forecasted period the best operation day and timeslot is found, and t
 4. Latest time to finish operation (default: 22:00)
 5. Maximum duration of operation in hours (default: 3 h)
 6. Number of days to forecast (1 to 30, default: 1 day)
-Based on the QTH locator the geographic position and timezone is found. All times entered and displayed refer to this timezone.
+
+Based on the QTH locator the geographic position and timezone is found. 
+All times entered and displayed refer to this timezone.
 
 # Output
 When the number of days to forecast is set to 1, the following information is displayed:
@@ -27,9 +29,9 @@ This is followed by the list of all satellite names, with the workable satellite
 # Installation and Dependencies
 You need to install pytz, skyfield and timezonefinder
 
-`pip install pytz, 
-pip install skyfield, 
-pip install timezonefinder`
+    pip install pytz
+    pip install skyfield
+    pip install timezonefinder
 
 During the first run, the program will download and save the necessary tle files.
 This can take a while, until the process is completed.
