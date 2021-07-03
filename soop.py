@@ -164,7 +164,7 @@ def check_tle(sat_list):
         try:
             sat = load.tle_file(url, reload=False, filename=fname)
         except(OSError, TimeoutError) as msg:
-            print(f"{msg}")
+            print(f"{COL.red}Can not download TLE data. Please check internet connection.{COL.end}")
             sys.exit(1)
         if not sat:
             print(f"{COL.red}Invalid Satellite list, "
@@ -177,7 +177,7 @@ def check_tle(sat_list):
             try:
                 load.tle_file(url, reload=True, filename=fname)
             except(OSError, TimeoutError) as msg:
-                print(f"{msg}")
+                print(f"{COL.yellow}Cannot update TLE data. Check Internet{COL.end}")
                 sys.exit(1)
 
 
