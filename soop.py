@@ -161,7 +161,11 @@ def check_tle(sat_list):
     for sat_name in sat_list:
         url = 'https://celestrak.com/satcat/tle.php?CATNR={}'.format(sat_list[sat_name])
         fname = 'tle-CATNR-{}.txt'.format(sat_list[sat_name])
-        sat = load.tle_file(url, reload=False, filename=fname)
+        try:
+            sat = load.tle_file(url, reload=False, filename=fname)
+        except(OSError, TimeoutError) as msg:
+            print(f"{msg}")
+            sys.exit(1)
         if not sat:
             print(f"{COL.red}Invalid Satellite list, "
                   f"no TLE data for catalogue no {sat_name}{COL.end}")
@@ -170,7 +174,11 @@ def check_tle(sat_list):
         tle_days = int(load.days_old(fname))
         if tle_days > 7:
             print(f"TLE data for {sat_name} outdated, reloading from celestrack")
-            load.tle_file(url, reload=True, filename=fname)
+            try:
+                load.tle_file(url, reload=True, filename=fname)
+            except(OSError, TimeoutError) as msg:
+                print(f"{msg}")
+                sys.exit(1)
 
 
 def get_qth():
@@ -187,6 +195,8 @@ def get_qth():
         if re.match(r"([A-Ra-r]{2}\d\d)(([A-Za-z]{2})(\d\d)?){0,2}", line):
             qthloc = line
             break
+        else:
+            print("Locator has 3 to 5 character/number pairs, like PK04lc")
         print(f"{COL.red}Invalid input{COL.end}")
     return qthloc
 
