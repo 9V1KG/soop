@@ -196,8 +196,8 @@ def get_input():
     Get input from user
     :return: date of operation, start and end time, duration and days to be forecasted
     """
-    valid_date = re.compile(r"[2][0][1-9]{2}-[0-9]{2}-[0-3][0-9]")
-    valid_time = re.compile(r"[0-2][0-9]:[0-5][0-9]")
+    valid_date = re.compile(r'^2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])')
+    valid_time = re.compile(r"^([0-1][0-9]|2[0-3]):[0-5][0-9]")
     dt_day = datetime.timedelta(days=1)  # tomorrow
 
     # defaults
@@ -223,7 +223,6 @@ def get_input():
             break
         if re.match(valid_time, line):
             tme_start = re.match(valid_time, line)[0]
-            # todo: check that date is not earlier than today
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
@@ -233,7 +232,6 @@ def get_input():
             break
         if re.match(valid_time, line):
             tme_end = re.match(valid_time, line)[0]
-            # todo: check that tme_end is not earlier than tme_start
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
@@ -255,6 +253,12 @@ def get_input():
             # todo: warning when days_fc > 7 (validity of tle data)
             break
         print(f"{COL.red}Invalid input{COL.end}")
+    # Check validity
+    t_s = datetime.datetime.strptime(tme_start, "%H:%M").timestamp()
+    t_e = datetime.datetime.strptime(tme_end, "%H:%M").timestamp()
+    if int((t_e - t_s)/3600) < dur_op:
+        print(f"{COL.red}Time between start and end time is shorter than given operation period!{COL.end}")
+        sys.exit(1)
     return dte_start, tme_start, tme_end, dur_op, days_fc
 
 
