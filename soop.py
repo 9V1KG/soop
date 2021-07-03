@@ -34,7 +34,9 @@ COL = Col(red="\033[1;31;48m",
 # Constants - Please change according to your requirements
 EL_MIN = 10.  # minimum elevation angle for satellite event
 MIN_DUR = 3  # minimum duration for satellite event
+TLE_OUT = 3  # days after TLE is treated as outdated
 QTH_DEF = "OJ11xi"  # default qth locator
+
 SATS_DEF = {"RS-44": 44909, "AO=7": 7530, "CAS-4B": 42759,
             "CAS-4A": 42761, "XW-2A": 40903, "XW-2C": 40906,
             "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
@@ -172,13 +174,12 @@ def check_tle(sat_list):
             print(f"{COL.red}Please correct your list{COL.end}")
             sys.exit(1)
         tle_days = int(load.days_old(fname))
-        if tle_days > 7:
+        if tle_days > TLE_OUT:
             print(f"TLE data for {sat_name} outdated, reloading from celestrack")
             try:
                 load.tle_file(url, reload=True, filename=fname)
             except(OSError, TimeoutError) as msg:
-                print(f"{COL.yellow}Cannot update TLE data. Check Internet{COL.end}")
-                sys.exit(1)
+                print(f"{COL.yellow}Warning: Cannot update TLE data. Please check Internet{COL.end}")
 
 
 def get_qth():
@@ -292,6 +293,7 @@ def main():
 
     # Header output
     print(f"\n{COL.cyan}SOOP Satellite Outdoor Operation Planning for ham radio by 9V1KG{COL.end}")
+    print("(c) 9V1KG - Check https://github.com/9V1KG/soop for latest updates")
     check_tle(my_sat_list)
     get_pc_timezone()
     print("For default input just press enter")
