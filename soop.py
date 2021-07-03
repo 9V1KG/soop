@@ -325,8 +325,10 @@ def main():
         # sort by timestamp
         tls_sorted = sorted(time_list, key=get_key)
         # Find optimal operation start time for the day
-        res = find_best_time(op_hours, tls_sorted)
-
+        if tls_sorted:
+            res = find_best_time(op_hours, tls_sorted)
+        else:  # no event
+            res = [1, 0, earliest_start_of_op_loc.timestamp(), 0]
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
         print(f"On{COL.yellow}", str(fc_date_loc).split(" ", maxsplit=1)[0], f"{COL.end}",
               f"{len(tls_sorted)} satellites, "
