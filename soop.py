@@ -165,7 +165,7 @@ def check_tle(sat_list):
         fname = 'tle-CATNR-{}.txt'.format(sat_list[sat_name])
         try:
             sat = load.tle_file(url, reload=False, filename=fname)
-        except(OSError, TimeoutError) as msg:
+        except(OSError, TimeoutError):
             print(f"{COL.red}Can not download TLE data. Please check internet connection.{COL.end}")
             sys.exit(1)
         if not sat:
@@ -178,7 +178,7 @@ def check_tle(sat_list):
             print(f"TLE data for {sat_name} outdated, reloading from celestrack")
             try:
                 load.tle_file(url, reload=True, filename=fname)
-            except(OSError, TimeoutError) as msg:
+            except(OSError, TimeoutError):
                 print(f"{COL.yellow}Warning: Cannot update TLE data. Please check Internet{COL.end}")
 
 
@@ -261,7 +261,6 @@ def get_input():
             break
         if 1 < int(line) < 31:
             days_fc = int(line)
-            # todo: warning when days_fc > 7 (validity of tle data)
             break
         print(f"{COL.red}Invalid input{COL.end}")
     # Check validity
@@ -342,10 +341,9 @@ def main():
         else:  # no event
             res = [1, 0, earliest_start_of_op_loc.timestamp(), 0]
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
-        print(f"On{COL.yellow}", str(fc_date_loc).split(" ", maxsplit=1)[0], f"{COL.end}",
-              f"{len(tls_sorted)} satellites, "
-              f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} can be operated "
-              f"within {op_hours} h, "
+        print(str(fc_date_loc).split(" ", maxsplit=1)[0],
+              f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} of {len(tls_sorted)} satellites"
+              f" withib {op_hours} h operation, "
               f"starting at{COL.yellow} ",
               datetime.datetime.fromtimestamp(res[2]).astimezone(qth_zone).strftime("%H:%M:%S"),
               f"{COL.end},"
