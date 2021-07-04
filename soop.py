@@ -187,19 +187,16 @@ def get_qth():
     Get qth locator from user
     :return: qthloc: str
     """
-    qthloc = QTH_DEF
     while True:
-        line = input(f"QTH locator of operation ( 6 up to 10 alphanum.), default "
-                     f"{COL.cyan}OJ11xi{COL.end}: ")
-        if line == "":
-            break
-        if re.match(r"([A-Ra-r]{2}\d\d)(([A-Za-z]{2})(\d\d)?){0,2}", line):
-            qthloc = line
+        print(f"QTH locator of operation ( 6 up to 10 alphanum.), default "
+              f"{COL.cyan}{QTH_DEF}{COL.end}: ", end="")
+        qth_loc = input() or QTH_DEF
+        if re.match(r"([A-Ra-r]{2}\d\d)(([A-Za-z]{2})(\d\d)?){0,2}", qth_loc):
             break
         else:
             print("Locator has 3 to 5 character/number pairs, like PK04lc")
         print(f"{COL.red}Invalid input{COL.end}")
-    return qthloc
+    return qth_loc
 
 
 def get_input():
@@ -210,56 +207,45 @@ def get_input():
     valid_date = re.compile(r'^2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])')
     valid_time = re.compile(r"^([0-1][0-9]|2[0-3]):[0-5][0-9]")
     dt_day = datetime.timedelta(days=1)  # tomorrow
-
-    # defaults
     dte_start = (datetime.datetime.now() + dt_day).strftime("%Y-%m-%d")
-    tme_start = "09:00"
-    tme_end = "20:00"
-    dur_op = 3
-    days_fc = 1
 
     while True:
-        line = input(f"1. Earliest date of operation, default "
-                     f"{COL.cyan}tomorrow{COL.end} (YYYY-MM-DD): ")
-        if line == "":
-            break
+        print(f"1. Earliest date of operation, default "
+              f"{COL.cyan}tomorrow{COL.end} (YYYY-MM-DD): ", end="")
+        line = input() or dte_start
         if re.match(valid_date, line):
             dte_start = re.match(valid_date, line)[0]
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
-        line = input(f"2. Earliest time of operation, default "
-                     f"{COL.cyan}09:00{COL.end} (hh:mm): ")
-        if line == "":
-            break
+        print(f"2. Earliest time of operation, default "
+              f"{COL.cyan}09:00{COL.end} (hh:mm): ", end="")
+        line = input() or "09:00"
         if re.match(valid_time, line):
             tme_start = re.match(valid_time, line)[0]
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
-        line = input(f"3. Latest time to finish operation, default "
-                     f"{COL.cyan}22:00{COL.end} (hh:mm): ")
-        if line == "":
-            break
+        print(f"3. Latest time to finish operation, default "
+              f"{COL.cyan}22:00{COL.end} (hh:mm): ", end="")
+        line = input() or "20:00"
         if re.match(valid_time, line):
             tme_end = re.match(valid_time, line)[0]
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
-        line = input(f"4. Max. duration of operation in hours, default "
-                     f"{COL.cyan}3{COL.end}: ")
-        if line == "":
-            break
+        print(f"4. Max. duration of operation in hours, default "
+              f"{COL.cyan}3{COL.end}: ", end="")
+        line = input() or "3"
         if 0 < int(line) < 23:
             dur_op = int(line)
             break
         print(f"{COL.red}Invalid input{COL.end}")
     while True:
-        line = input(f"5. Number of days to forecast (1-30), default "
-                     f"{COL.cyan}1{COL.end}:")
-        if line == "":
-            break
-        if 1 < int(line) < 31:
+        print(f"5. Number of days to forecast (1-30), default "
+              f"{COL.cyan}1{COL.end}:", end="")
+        line = input() or "1"
+        if 0 < int(line) < 31:
             days_fc = int(line)
             break
         print(f"{COL.red}Invalid input{COL.end}")
