@@ -35,6 +35,7 @@ COL = Col(red="\033[1;31;48m",
 EL_MIN = 10.  # minimum elevation angle for satellite event
 MIN_DUR = 3  # minimum duration for satellite event
 TLE_OUT = 3  # days after TLE is treated as outdated
+FC_WARNING = 7
 QTH_DEF = "OJ11xi"  # default qth locator
 
 SATS_DEF = {"RS-44": 44909, "AO=7": 7530, "CAS-4B": 42759,
@@ -305,6 +306,11 @@ def soop():
           f"\nDate and Time are shown for this timezone, UTC offset is {ofs}\n")
 
     start_date_str, start_time_str, end_time_str, op_hours, fc_days = get_input()
+    days_fut = (datetime.datetime.strptime(start_date_str, "%Y-%m-%d")
+                - datetime.datetime.now()).days
+    if days_fut > FC_WARNING or fc_days > FC_WARNING:
+        print(f"{COL.yellow}Warning!{COL.end} Earliest start date/forecast is "
+              f"{days_fut} days from now. TLE data could be outdated.")
     print()
     earliest_start_of_op_str = start_date_str + " " + start_time_str
     latest_start_of_op_str = start_date_str + " " + end_time_str
@@ -340,7 +346,7 @@ def soop():
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
         print(str(fc_date_loc).split(" ", maxsplit=1)[0],
               f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} of {len(tls_sorted)} satellites"
-              f" withib {op_hours} h operation, "
+              f" within {op_hours} h operation, "
               f"starting at{COL.yellow} ",
               datetime.datetime.fromtimestamp(res[2]).astimezone(qth_zone).strftime("%H:%M:%S"),
               f"{COL.end},"
