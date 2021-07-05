@@ -309,8 +309,8 @@ def soop():
     days_fut = (datetime.datetime.strptime(start_date_str, "%Y-%m-%d")
                 - datetime.datetime.now()).days
     if days_fut > FC_WARNING or fc_days > FC_WARNING:
-        print(f"{COL.yellow}Warning!{COL.end} Earliest start date/forecast is "
-              f"{days_fut} days from now. TLE data could be outdated.")
+        print(f"{COL.yellow}Warning!{COL.end} Prediction covers dates more than "
+              f"{FC_WARNING} days in the future. TLE data could be outdated then.")
     print()
     earliest_start_of_op_str = start_date_str + " " + start_time_str
     latest_start_of_op_str = start_date_str + " " + end_time_str
@@ -341,16 +341,17 @@ def soop():
         # Find optimal operation start time for the day
         if tls_sorted:
             res = find_best_time(op_hours, tls_sorted)
+            print(str(fc_date_loc).split(" ", maxsplit=1)[0],
+                  f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} of {len(tls_sorted)} satellites"
+                  f" within {op_hours} h operation, "
+                  f"starting at{COL.yellow} ",
+                  datetime.datetime.fromtimestamp(res[2]).astimezone(qth_zone).strftime("%H:%M:%S"),
+                  f"{COL.end},"
+                  f"total time:{COL.yellow} {res[3]} min{COL.end}")
         else:  # no event
-            res = [1, 0, earliest_start_of_op_loc.timestamp(), 0]
+            print(str(fc_date_loc).split(" ", maxsplit=1)[0],
+                  f"{COL.red}No event{COL.end}")
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
-        print(str(fc_date_loc).split(" ", maxsplit=1)[0],
-              f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} of {len(tls_sorted)} satellites"
-              f" within {op_hours} h operation, "
-              f"starting at{COL.yellow} ",
-              datetime.datetime.fromtimestamp(res[2]).astimezone(qth_zone).strftime("%H:%M:%S"),
-              f"{COL.end},"
-              f"total time:{COL.yellow} {res[3]} min{COL.end}")
 
         # list of satellites when forecast days is set to 1
         if fc_days == 1:
