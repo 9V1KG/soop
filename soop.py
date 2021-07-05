@@ -45,6 +45,10 @@ SATS_FM = {"SO-50": 27607, "LAPAN-A2": 40931, "DIWATA-2B": 43678, "ISS": 25544}
 
 CEL_TRK = "https://celestrak.com/satcat/tle.php"  # for tle download
 
+# Global variables
+qth_loc = QTH_DEF
+my_sats = SATS_DEF
+
 
 def get_key(item):
     """
@@ -185,8 +189,10 @@ def check_tle(sat_list):
 def get_qth():
     """
     Get qth locator from user
-    :return: qthloc: str
+    Set global variable qth_loc
+    :return: void
     """
+    global qth_loc
     while True:
         print(f"QTH locator of operation ( 6 up to 10 alphanum.), default "
               f"{COL.cyan}{QTH_DEF}{COL.end}: ", end="")
@@ -196,7 +202,6 @@ def get_qth():
         else:
             print("Locator has 3 to 5 character/number pairs, like PK04lc")
         print(f"{COL.red}Invalid input{COL.end}")
-    return qth_loc
 
 
 def get_input():
@@ -267,30 +272,36 @@ def get_pc_timezone():
     return
 
 
-def main():
+def soop_init():
+    """
+    Initialize satellite list, qth locator etc
+    :return: void
+    """
+    # Header output
+    print(f"\n{COL.cyan}SOOP Satellite Outdoor Operation Planning for ham radio by 9V1KG{COL.end}")
+    print("(c) 9V1KG - Check https://github.com/9V1KG/soop for latest updates")
+    check_tle(SATS_DEF)
+    get_pc_timezone()
+    print("For default input just press enter")
+    get_qth()
+
+
+def soop():
     """
     Main program to forecast and find optimal time period for outdoor ham radio satellite operation
     :return: void
     """
-
-    my_sat_list = SATS_DEF  # Norad catalogue numbers
+    global qth_loc, my_sats
     tz_f = TimezoneFinder()  # initialize timezone finder
 
-    # Header output
-    print(f"\n{COL.cyan}SOOP Satellite Outdoor Operation Planning for ham radio by 9V1KG{COL.end}")
-    print("(c) 9V1KG - Check https://github.com/9V1KG/soop for latest updates")
-    check_tle(my_sat_list)
-    get_pc_timezone()
-    print("For default input just press enter")
-
     # Input
-    qth_loc = get_qth()
     lat, lon = maiden2latlon(qth_loc)
     tz_qth = tz_f.timezone_at(lng=lon, lat=lat)  # Timezone based on qth locator
     geo_pos = wgs84.latlon(lat, lon)  # Get geo_pos from qth locator
     qth_zone = pytz.timezone(tz_qth)
     ofs = qth_zone.localize(datetime.datetime.now()).utcoffset()
-    print(f"Timezone based on QHT locator is {COL.yellow}{qth_zone}{COL.end}.",
+    print(f"Timezone based on QTH locator {COL.yellow}{qth_loc}{COL.end}"
+          f" is {COL.yellow}{qth_zone}{COL.end}.",
           f"\nDate and Time are shown for this timezone, UTC offset is {ofs}\n")
 
     start_date_str, start_time_str, end_time_str, op_hours, fc_days = get_input()
@@ -314,9 +325,9 @@ def main():
         fc_date_loc = earliest_start_of_op_loc + datetime.timedelta(days=fc_day)
         # Loop through all satellites
         time_list = []
-        for sat in my_sat_list:
+        for sat in my_sats:
             # call function to find events
-            evnts = sat_track(geo_pos, fc_date_utc_start, fc_date_utc_end, my_sat_list[sat])
+            evnts = sat_track(geo_pos, fc_date_utc_start, fc_date_utc_end, my_sats[sat])
             if evnts is not None:
                 time_list.extend(evnts)
         # sort by timestamp
@@ -350,4 +361,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    soop_init()
+    while True:
+        soop()
+        print(f"\nNew forecast for {COL.yellow}{qth_loc}{COL.end} (y/n, default = y)?", end="")
+        cont = input() or "y"
+        if cont != "y":
+            break
+    print("Program finished")
