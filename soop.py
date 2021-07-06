@@ -16,6 +16,20 @@ import pytz
 from skyfield.api import load, wgs84, Time
 from timezonefinder import TimezoneFinder
 
+# Constants - Please change according to your requirements
+EL_MIN = 10.  # minimum elevation angle for satellite event
+MIN_DUR = 3  # minimum duration for satellite event
+TLE_OUT = 3  # days after TLE is treated as outdated
+FC_WARNING = 7
+QTH_DEF = "OJ11xi"  # default qth locator
+
+# List of preferred satellites. Please delete or add.
+# {"Sat short name": NORAD catalogue number}
+SATS_DEF = {"RS-44": 44909, "AO-7": 7530, "CAS-4B": 42759,
+            "CAS-4A": 42761, "XW-2A": 40903, "XW-2C": 40906,
+            "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
+            "ISS": 25544, "SO-50": 27607, "DIWATA-2B": 43678}
+
 Col = namedtuple(
     'color',
     ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'bold', 'end']
@@ -30,19 +44,6 @@ COL = Col(red="\033[1;31;48m",
           bold="\033[1;37;48m",
           end="\033[1;37;0m"
           )
-
-# Constants - Please change according to your requirements
-EL_MIN = 10.  # minimum elevation angle for satellite event
-MIN_DUR = 3  # minimum duration for satellite event
-TLE_OUT = 3  # days after TLE is treated as outdated
-FC_WARNING = 7
-QTH_DEF = "OJ11xi"  # default qth locator
-
-SATS_DEF = {"RS-44": 44909, "AO=7": 7530, "CAS-4B": 42759,
-            "CAS-4A": 42761, "XW-2A": 40903, "XW-2C": 40906,
-            "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
-            "ISS": 25544, "SO-50": 27607}
-SATS_FM = {"SO-50": 27607, "LAPAN-A2": 40931, "DIWATA-2B": 43678, "ISS": 25544}
 
 CEL_TRK = "https://celestrak.com/satcat/tle.php"  # for tle download
 
@@ -259,7 +260,8 @@ def get_input():
     t_s = datetime.datetime.strptime(tme_start, "%H:%M").timestamp()
     t_e = datetime.datetime.strptime(tme_end, "%H:%M").timestamp()
     if int((t_e - t_s)/3600) < dur_op:
-        print(f"{COL.red}Time between start and end time is shorter than given operation period!{COL.end}")
+        print(f"{COL.red}Time between start and end time is shorter "
+              f"than given operation period!{COL.end}")
         sys.exit(1)
     return dte_start, tme_start, tme_end, dur_op, days_fc
 
@@ -289,7 +291,8 @@ def soop_init():
 
 def soop():
     """
-    Main program to forecast and find optimal time period for outdoor ham radio satellite operation
+    Main program to forecast and find optimal time period for
+    outdoor ham radio satellite operation
     :return: void
     """
     global qth_loc, my_sats
@@ -338,8 +341,9 @@ def soop():
                 time_list.extend(evnts)
         # sort by timestamp
         tls_sorted = sorted(time_list, key=get_key)
-        # Find optimal operation start time for the day
+        res = None
         if tls_sorted:
+            # Find optimal operation start time for the day
             res = find_best_time(op_hours, tls_sorted)
             print(str(fc_date_loc).split(" ", maxsplit=1)[0],
                   f"{COL.yellow}{res[1] - res[0] + 1}{COL.end} of {len(tls_sorted)} satellites"
@@ -353,25 +357,30 @@ def soop():
                   f"{COL.red}No event{COL.end}")
         # 0: index first sat 1: index last sat 2: AOS 3: duration 2: Satellite name
 
-        # list of satellites when forecast days is set to 1
-        if fc_days == 1:
+        # list satellites when forecast days is set to 1
+        if res and fc_days == 1:
+            n_sl = len(tls_sorted)
+            t_diff = 0
             for i_sl, ops in enumerate(tls_sorted):
+                if i_sl < n_sl - 1:
+                    # break time until next satellite is coming in min
+                    t_diff = (tls_sorted[i_sl + 1][0] - (ops[0] + ops[1] * 60)) / 60
                 tobs = datetime.datetime.fromtimestamp(ops[0]).astimezone(qth_zone)
-                if res[0] <= i_sl <= res[1]:
-                    print(f"{COL.green}",
-                          tobs.strftime('%H:%M:%S '),
-                          tls_sorted[i_sl][2], ops[1], "min", f"{COL.end}")
+                if res[0] <= i_sl <= res[1]: # Sats within operation period in green
+                    print(f"{COL.green}{tobs.strftime('%H:%M:%S ')}"
+                          f"{tls_sorted[i_sl][2]} {ops[1]} min{COL.end},"
+                          f" next in {int(t_diff)} min")
                 else:
-                    print(f"{COL.end}",
-                          tobs.strftime('%H:%M:%S '),
-                          ops[2], ops[1], "min", f"{COL.end}")
+                    print(f"{COL.end}{tobs.strftime('%H:%M:%S ')}"
+                          f"{tls_sorted[i_sl][2]} {ops[1]} min{COL.end}")
 
 
 if __name__ == '__main__':
     soop_init()
     while True:
         soop()
-        print(f"\nNew forecast for {COL.yellow}{qth_loc}{COL.end} (y/n, default = y)?", end="")
+        print(f"\nNew forecast for {COL.yellow}{qth_loc}{COL.end} "
+              f"(y/n, default = y)?", end="")
         cont = input() or "y"
         if cont != "y":
             break
