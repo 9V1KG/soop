@@ -17,18 +17,25 @@ from skyfield.api import load, wgs84, Time
 from timezonefinder import TimezoneFinder
 
 # Constants - Please change according to your requirements
-EL_MIN = 10.  # minimum elevation angle for satellite event
-MIN_DUR = 3  # minimum duration for satellite event
-TLE_OUT = 3  # days after TLE is treated as outdated
-FC_WARNING = 7
-QTH_DEF = "OJ11xi"  # default qth locator
-
-# List of preferred satellites. Please delete or add.
-# {"Sat short name": NORAD catalogue number}
-SATS_DEF = {"RS-44": 44909, "AO-7": 7530, "CAS-4B": 42759,
-            "CAS-4A": 42761, "XW-2A": 40903, "XW-2C": 40906,
-            "XW-2F": 40910, "JY1SAT": 43803, "LILACSAT-2": 40908,
-            "ISS": 25544, "SO-50": 27607, "DIWATA-2B": 43678}
+QTH_DEF = "OJ11xi"  # your default qth locator
+SATS_DEF = {    # List of preferred satellites. Please delete or add.
+    "RS-44": 44909,
+    "AO-7": 7530,
+    "CAS-4A": 42761,
+    "CAS-4B": 42759,
+    "XW-2A": 40903,
+    "XW-2C": 40906,
+    "XW-2F": 40910,
+    "JY1SAT": 43803,
+    "LILACSAT-2": 40908,
+    "ISS": 25544,
+    "SO-50": 27607,
+    "DIWATA-2B": 43678
+}
+EL_MIN = 10.    # minimum elevation angle (deg) for a satellite event
+MIN_DUR = 3     # minimum duration (minutes) for a satellite event
+TLE_OUT = 3     # days after TLE is treated as outdated
+FC_WARNING = 7  # display warning when forecast exceeds FC_WARNING days
 
 Col = namedtuple(
     'color',
@@ -243,19 +250,27 @@ def get_input():
     while True:
         print(f"4. Max. duration of operation in hours, default "
               f"{COL.cyan}3{COL.end}: ", end="")
-        line = input() or "3"
-        if 0 < int(line) < 23:
+        line = input() or str(MIN_DUR)
+        try:
             dur_op = int(line)
+        except ValueError:
+            dur_op = 0
+            print(f"{COL.red}Please input a number{COL.end}")
+        if 0 < dur_op < 23:
             break
-        print(f"{COL.red}Invalid input{COL.end}")
+        print(f"{COL.red}The number should be between 1 and 23{COL.end}")
     while True:
         print(f"5. Number of days to forecast (1-30), default "
               f"{COL.cyan}1{COL.end}:", end="")
         line = input() or "1"
-        if 0 < int(line) < 31:
+        try:
             days_fc = int(line)
+        except ValueError:
+            days_fc = 0
+            print(f"{COL.red}Please input a number{COL.end}")
+        if 0 < days_fc < 31:
             break
-        print(f"{COL.red}Invalid input{COL.end}")
+        print(f"{COL.red}The number should be between 1 and 30{COL.end}")
     # Check validity
     t_s = datetime.datetime.strptime(tme_start, "%H:%M").timestamp()
     t_e = datetime.datetime.strptime(tme_end, "%H:%M").timestamp()
@@ -366,7 +381,7 @@ def soop():
                     # break time until next satellite is coming in min
                     t_diff = (tls_sorted[i_sl + 1][0] - (ops[0] + ops[1] * 60)) / 60
                 tobs = datetime.datetime.fromtimestamp(ops[0]).astimezone(qth_zone)
-                if res[0] <= i_sl <= res[1]: # Sats within operation period in green
+                if res[0] <= i_sl <= res[1]:  # Sats within operation period in green
                     print(f"{COL.green}{tobs.strftime('%H:%M:%S ')}"
                           f"{tls_sorted[i_sl][2]} {ops[1]} min{COL.end},"
                           f" next in {int(t_diff)} min")
